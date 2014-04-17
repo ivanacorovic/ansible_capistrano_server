@@ -50,6 +50,8 @@ Vagrant obezbjedjuje prenosivo radno okruzenje koje se lako konfigurise, moze se
 
 ``vagrant up`` - skidanje (ucitavanje) virtuelne masine koja je navedena u Vagrantfile-u
 
+``vagrant provision``
+
 ``vagrant halt`` 
 
 ``vagrant destroy``
@@ -61,9 +63,15 @@ Vagrant obezbjedjuje prenosivo radno okruzenje koje se lako konfigurise, moze se
 
 Ansible je IT alatka za automatizaciju. Moze da konfigurise sisteme, izvrsiti "deployment" i upravlajti slozenijim IT zadacima. 
 
+[Instalacija](http://docs.ansible.com/intro_installation.html#latest-releases-via-apt-ubuntu)
+
+	$ sudo apt-add-repository ppa:rquillo/ansible
+	$ sudo apt-get update
+	$ sudo apt-get install ansible
+
 ## Uvod
 
-Ansible ima tri cjeline:
+Ansible ima tri osnovne cjeline:
 
 - vars
 - roles
@@ -95,7 +103,6 @@ Promjenljive mozemo definisati i na raznim drugim mjestima, i njihov prioritet o
 		roles:
    		- { name: apache, http_port: 8080 }
 
-- sve ostale
 - promjenljive definisane u inventory-ju
 - cinjenice otkrivene o sistemu
 - role defaults
