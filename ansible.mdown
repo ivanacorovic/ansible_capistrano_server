@@ -12,7 +12,7 @@ Vagrant obezbjedjuje prenosivo radno okruzenje koje se lako konfigurise, moze se
 
 [Dokumantacija](http://docs.vagrantup.com/v2/)
 
-[Download](https://www.vagrantup.com/download-archive/v1.5.1.html) -download (kod mene radi bas ova verzija, ne najnovija 5.2) 
+[Download](https://www.vagrantup.com/download-archive/v1.5.1.html) -download (kod mene radi bas ova verzija (v1.5.1), ne najnovija v1.5.2) 
 
 ### Instalacija:
 ``sudo dpkg -i vagrant_1.5.1_x86_64.deb``
@@ -282,61 +282,144 @@ vars/defaults.yml:
 	# Papertrail logging
 	# e.g. @logs.papertrailapp.com:1234
 	papertrail_log_dest: "@logs.papertrailapp.com:46606"
+```
 
-	hosts-digitalocean:
-	    [webservers]
-	greenfield.416.bike ansible_ssh_host=IP
+hosts-digitalocean:
+
+```
+	[webservers]
+	greenfield.416.bike ansible_ssh_host=IP_on_the_server
 ```
 
 build-server.yml:
+```
     - hosts: all
  vars_files:
     - vars/defaults.yml
     - vars/application_name.yml
       remote_user: "{{ deploy }}"
+```
 
 build-server.yml:
+
+```
    ### Site specific roles:
         - { role: prepare_site_pricemeter, tags: ['prepare_site_pricemeter'] }
-
+```
 
 folder  ``roles/prepare_site_sampleapp`` preimenovati u ``prepare_site_application_name``
 fajl ``roles/prepare_site_application_name/templates/sampleapp_production.nginx.j2`` preimenovati u ``appication_name.nginx.j2``
 
 
-	$ git clone https://github.com/jbinto/ansible-ubuntu-rails-server.git
+	$ git clone https://github.com/ivanacorovic/ansible_capistrano_server.git
 	$ cd ansible-ubuntu-rails-server
-	$ sudo apt-get install python-setuptools
-	$ sudo easy_install pip
-	$ sudo pip install -r requirements.txt
 
-Ovo poslednje ne mora, ako je vec instaliran ansible. Ali, ako nije, eto nacina. Svakako ce pip biti potreban kasnije, pa ne skodi da se pokrenu prve dvije komande. 
 
 sudo_password: (to je pasvord korisnika deploy). On, u kodu, mora biti heshiran, tj, generisemo ga tako sto se pozicioniramo u support folder i odradimo:
 
 ```
-$ cd support
-$ pip install passlib
-$ ./generate-crypted-password.py
+$ mkpasswd --method=SHA-512
+
 ```
 
 To sto dobijemo stavimo kao pasvord deploy korisnika. U toku izvrsavanja, ova f-ja trazi da unesemo pasvord u ``vars/defaults.yml``, i tu rijec pisemo kad treba da se unese sudo_password. 
 
-	$ vagrant up # ovo ce vratiti gresku, ne brinite
+	$ vagrant up # ako vrati gresku, ne brinite
 	$ vagrant provision
 	(and now we wait...)
 
 ## Pripremanje aplikacije
 
-	$ cd ..
-	$ git clone https://github.com/jbinto/rails4-sample-app-capistrano.git
-	$ cd rails4-sample-app-capistrano
-	$ rvm gemset use rails4 --create
-	$ bundle install
-	$ cp config/database.yml config/database.yml.example
-	$ bundle exec rake db:test:prepare
-	$ cap dev deploy
+Udjite u folder Vase aplikacije. 
+Klonirajte projekat koji sluzi kao primjer i izvrsite potrebne izmjene. 
 
+	$ cd ..
+	$ git clone https://github.com/ivanacoroviserver_pricemeter.git
+
+Postarajte se da izmijenite cijeli config/deploy folder tako da ima sadrzaj kao u klonovanom projektu. 
+
+server je 'dev.416.bike' ako vrsimo deploymentu na VMBox. Ako radimo sa serverom, onda tu staviti 'greenfield.416.bike'.
 production.rb:
 
-``	set :deploy_to, "/home/#{fetch(:deploy_user)}/apps/#{fetch(:full_app_name)}"``
+```
+	server 'dev.416.bike', user: 'deployer', roles: %w{web app db}
+	.
+	.
+	.
+	set :deploy_to, "/home/#{fetch(:deploy_user)}/apps/#{fetch(:full_app_name)}"
+```
+
+fajl deploy.rb (izmijenite ovaj dio tako da su to podaci koji se odnose na Vasu aplikaciju):
+
+```
+	set :application, "your_app_name"
+	set :deploy_user, "deployer"
+	set :scm, "git"
+	set :repo_url, "git address of the app you're now changing"
+	set :rbenv_type, :user
+	set :rbenv_ruby, '2.1.0'
+  . 
+  .
+  .
+  set :tests, ["spec"]
+
+```
+Postarajte se da je lib/capistrano folder i sve u njemu bude isto u Vasoj i aplikaciji sa primjera.
+
+Capfile takodje treba da bude kao u primjeru. 
+	
+	$ cd your_app
+	$ rvm gemset use new_gemset --create
+	$ bundle install
+	$ cp config/database.yml config/database.yml.example
+	$ git add -u
+	$ git commit -m "deployment commit"
+	$ git push origin master
+	$ bundle exec rake db:test:prepare
+	$ cap production deploy
+
+
+
+
+Q&A
+
+What is inventory file? syntax and options for inventory files? what is default inventory file?
+
+
+What is playbook? syntax and options for playbooks?
+
+
+What are modules? What modules provide? Which are some common or often required modules?
+
+
+
+How ansible communicates with remote machines?
+
+
+What is the user which ansible uses by default to connect remote ssh? How to tell ansible which user to connect to remote machine?
+
+
+What is the difference when you define sudo: yes for play and sudo: yes for particular task?
+
+How many times handlers are invoked when they are notified multiple times?
+
+
+
+Explain role directory organization structure?
+
+
+Why following does not work?
+
+```
+- hosts: app_servers
+  vars:
+      app_path: {{ base_path }}/22
+```
+
+
+How will you retrieve remote host eth0 macaddress in some playbook template file?
+
+
+How will you dynamically provide frontend proxy server with IP addresses of all of the app servers for which it proxies the traffic? (see variables - groups)
+
+How will you specify that particular task needs to be performed only if previous task was successfully performed? (see conditionals)

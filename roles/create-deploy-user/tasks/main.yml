@@ -10,8 +10,8 @@
 - name: add {{ deploy }} to sudoers
   lineinfile: "dest=/etc/sudoers state=present line='{{ deploy }} ALL=(ALL:ALL) ALL'"
 
-- name: require password upon each invocation of sudo
-  lineinfile: "dest=/etc/sudoers state=present line='Defaults timestamp_timeout=0'"
+# - name: require password upon each invocation of sudo
+#   lineinfile: "dest=/etc/sudoers state=present line='Defaults timestamp_timeout=0'"
 
 - name: create www-data group
   group: name=www-data state=present
